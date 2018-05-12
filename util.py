@@ -42,6 +42,10 @@ class Queue(object):
 		else:
 			self.Q = isValid(arg)
 
+	#add new element(s) to the queue
+	def add(self, arg):
+		self.Q = self.Q + isValid(arg)
+
 	#return the number of elements in the queue
 	def length(self):
 		return len(self.Q)
@@ -50,14 +54,14 @@ class Queue(object):
 	def isEmpty(self):
 		return len(self.Q) == 0
 
+"""
+	First in, first out (FIFO) queue inherits from Queue
+"""
 class FIFO(Queue):
-	"""docstring for Queue"""
+	#constructor that calls Queue
 	def __init__(self, arg=None):
-		Queue.__init__(self, arg)
 
-	def add(self, arg):
-		self.Q = self.Q + isValid(arg)
-
+	#remove first element from the list (FIFO) and return it
 	def pop(self):
 		if len(self.Q) < 1:
 			return None
@@ -65,14 +69,15 @@ class FIFO(Queue):
 		self.Q = self.Q[1:]
 		return item
 
+"""
+	Last in, first out (LIFO) queue inherits from Queue
+"""
 class LIFO(Queue):
-	"""docstring for Queue"""
+	#constructor that calls Queue
 	def __init__(self, arg=None):
 		Queue.__init__(self, arg)
 
-	def add(self, arg):
-		self.Q = self.Q + isValid(arg)
-
+	#remove last element from the list (FIFO) and return it
 	def pop(self):
 		if len(self.Q) < 1:
 			return None
