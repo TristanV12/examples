@@ -1,5 +1,4 @@
 ###############################################################
-# =========================================================== #
 # graph_builder.py ========================================== #
 # This is an example of how to build graphs in python. ====== #
 # For more information on python or the packages used visit:  #

@@ -1,0 +1,81 @@
+###############################################################
+# util.py =================================================== #
+# This is the implementation of multiple data structures ==== #
+# Most of them are standard, this is how to make them ======= #
+# 	from scratch. =========================================== #
+###############################################################
+
+#Errors
+QUEUE_VALUE_ERROR = 'Error: Queue is only implemented for lists, integers, and floats'
+
+"""
+	isValid is a helper function that checks if the input is valid
+	Returns an array of the items in arg is all of them are valid
+	Throws error if any of the items are invalid
+"""
+def isValid(arg):
+	arr = [] #the array that will be returned
+	if type(arg) is list:
+		# run through items in the list if it is a list
+		for item in arg:
+			#check if valid
+			if type(item) is int or type(item) is float:
+				arr.append(item) #if so, append
+			else:
+				raise ValueError(QUEUE_VALUE_ERROR) #if not, throw this error
+	# check if it is a single item
+	elif type(arg) is int or type(arg) is float:
+		arr.append(arg) #if so, append
+	else:
+		raise ValueError(QUEUE_VALUE_ERROR) #if not, throw this error
+	return arr
+
+"""
+	Queue is a parent class for general Queues
+"""
+class Queue(object):
+	#constructor
+	def __init__(self, arg=None):
+		super(Queue, self).__init__()
+		if arg is None:
+			self.Q = []
+		else:
+			self.Q = isValid(arg)
+
+	#return the number of elements in the queue
+	def length(self):
+		return len(self.Q)
+
+	#returns a boolean that is true if the queue is empty
+	def isEmpty(self):
+		return len(self.Q) == 0
+
+class FIFO(Queue):
+	"""docstring for Queue"""
+	def __init__(self, arg=None):
+		Queue.__init__(self, arg)
+
+	def add(self, arg):
+		self.Q = self.Q + isValid(arg)
+
+	def pop(self):
+		if len(self.Q) < 1:
+			return None
+		item = self.Q[0]
+		self.Q = self.Q[1:]
+		return item
+
+class LIFO(Queue):
+	"""docstring for Queue"""
+	def __init__(self, arg=None):
+		Queue.__init__(self, arg)
+
+	def add(self, arg):
+		self.Q = self.Q + isValid(arg)
+
+	def pop(self):
+		if len(self.Q) < 1:
+			return None
+		item = self.Q[-1]
+		self.Q = self.Q[:-1]
+		return item
