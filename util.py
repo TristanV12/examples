@@ -62,6 +62,7 @@ class FIFO(Queue):
 	def __init__(self, arg=None):
 
 	#remove first element from the list (FIFO) and return it
+	#	returns None is it is empty
 	def pop(self):
 		if len(self.Q) < 1:
 			return None
@@ -78,6 +79,7 @@ class LIFO(Queue):
 		Queue.__init__(self, arg)
 
 	#remove last element from the list (FIFO) and return it
+	#	returns None is it is empty
 	def pop(self):
 		if len(self.Q) < 1:
 			return None
