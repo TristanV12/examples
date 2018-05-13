@@ -86,3 +86,30 @@ class LIFO(Queue):
 		item = self.Q[-1]
 		self.Q = self.Q[:-1]
 		return item
+
+"""
+	Priority queue inherits from Queue
+"""
+class Priority(Queue):
+	#constructor that calls Queue
+	def __init__(self):
+		Queue.__init__(self, None)
+		self.items = []
+
+	#adds an element to the list with a given priority
+	def add(self, item, priority):
+		added = False
+		for itr in range(0, len(self.Q)):
+			if self.Q[itr][0] > priority:
+				self.Q = self.Q[:itr] + [(priority, item)] + self.Q[itr:]
+				return None
+		self.Q.append((priority, item))
+
+	#remove last element from the list (FIFO) and return it
+	#	returns None is it is empty
+	def pop(self):
+		if len(self.Q) < 1:
+			return None
+		item = self.Q[0]
+		self.Q = self.Q[0:]
+		return item
