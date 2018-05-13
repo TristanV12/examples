@@ -105,7 +105,7 @@ class Priority(Queue):
 				return None
 		self.Q.append((priority, item))
 
-	#remove last element from the list (FIFO) and return it
+	#remove first element from the list (with lowest priority) and return it
 	#	returns None is it is empty
 	def pop(self):
 		if len(self.Q) < 1:
