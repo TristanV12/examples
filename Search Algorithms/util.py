@@ -18,16 +18,9 @@ def isValid(arg):
 	if type(arg) is list:
 		# run through items in the list if it is a list
 		for item in arg:
-			#check if valid
-			if type(item) is int or type(item) is float:
-				arr.append(item) #if so, append
-			else:
-				raise ValueError(QUEUE_VALUE_ERROR) #if not, throw this error
-	# check if it is a single item
-	elif type(arg) is int or type(arg) is float:
-		arr.append(arg) #if so, append
+			arr.append(item)
 	else:
-		raise ValueError(QUEUE_VALUE_ERROR) #if not, throw this error
+		arr.append(arg)
 	return arr
 
 """
@@ -60,11 +53,13 @@ class Queue(object):
 class FIFO(Queue):
 	#constructor that calls Queue
 	def __init__(self, arg=None):
+		Queue.__init__(self, arg)
 
 	#remove first element from the list (FIFO) and return it
 	#	returns None is it is empty
 	def pop(self):
 		if len(self.Q) < 1:
+			print(self.Q)
 			return None
 		item = self.Q[0]
 		self.Q = self.Q[1:]
