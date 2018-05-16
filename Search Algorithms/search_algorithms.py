@@ -72,7 +72,8 @@ def searchAlgorithm(graph, search_type="BFS"):
 
 if __name__ == '__main__':
 	# Initialize and run
-	graph = Grapher(10)
+	graph = Grapher(10, 9)
+	print(graph)
 	path, tested_actions = searchAlgorithm(graph)
 
 	# Feedback

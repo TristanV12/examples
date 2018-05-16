@@ -15,8 +15,15 @@ import time
 		directions: up/down, left/right.
 """
 class Graph2D:
-	# Constructor
-	def __init__(self, graph_size):
+	# Constructor, max_weight is 0 if the graph is unweighted
+	def __init__(self, graph_size, max_weight=1):
+		# error checking
+		if type(max_weight) != int or max_weight < 1:
+			raise ValueError("Error: max_weight in Graph2D must be an integer greater "
+				+ "than or equal to 1 (equal to 1 for unweighted graphs)")
+		if type(graph_size) != int or graph_size < 2:
+			raise ValueError("Error: graph_size in Graph2d must be an integer greater "
+				+ "than or equal to 2")
 		self.graph = []
 		self.outstring = ""
 		self.start = (int(random.random() * (graph_size - 1)),
@@ -24,9 +31,13 @@ class Graph2D:
 		self.end = (int(random.random() * (graph_size - 1)),
 			int(random.random() * (graph_size - 1)))
 		self.order = None
+		self.weighted = max_weight > 1
 		# Build 0'd out graph
 		for x in range(0, graph_size):
-			self.graph.append([0] * graph_size)
+			self.graph.append([])
+			for y in range(0, graph_size):
+				self.graph[-1].append([0, 0])
+
 		for x in range(0, graph_size):
 			for y in range(0, graph_size):
 				# 8 = up, 4 = down, 2 = left, 1 = right
@@ -34,46 +45,80 @@ class Graph2D:
 				#	think about it, but there are other ways to do it.
 				# 3 = 1 + 2 = left, right vs 12 = 8 + 4 = up, down
 
-				# undirected: checks if the nodes above and to the left are
-				#	connected, then adds a connection back if so
-				if x != 0:
-					self.graph[y][x] += (2 * (self.graph[y][x - 1] % 2))
-				if y != 0:
-					self.graph[y][x] += (8 * ((self.graph[y - 1][x] // 4) % 2))
+				# # undirected: checks if the nodes above and to the left are
+				# #	connected, then adds a connection back if so
+				# if x != 0:
+				# 	self.graph[y][x] += self.graph[y][x - 1]
+				# if y != 0:
+				# 	self.graph[y][x] += (8 * ((self.graph[y - 1][x] // 4) % 2))
 
-				# Randomly assigns other connections with probability 3/4
+				# Randomly assigns down, right connections with probability 3/4
 				if x != graph_size - 1:
-					self.graph[y][x] += (1 * (random.random() < .75))
+					if max_weight > 1:
+						weight = int(max_weight * random.random())
+					else:
+						weight = 1
+					self.graph[y][x][0] = (weight * (random.random() < .75))
 				if y != graph_size - 1:
-					self.graph[y][x] += (4 * (random.random() < .75))
+					if max_weight > 1:
+						weight = int(max_weight * random.random())
+					else:
+						weight = 1
+					self.graph[y][x][1] = (weight * (random.random() < .75))
 
 		# Builds the outstring for further sanity later
 		#	Boards greater than 100x100 take too long and are
 		#	pointless to represent in this way
-		if graph_size <= 100:
-			for y in range(0, (graph_size * 2) - 1):
+		if graph_size <= 100 and max_weight < 10:
+			y_range = ((graph_size - 1) * ((2 * (not self.weighted))+(4 * self.weighted))) + 1
+			if self.weighted:
+				div = 4
+			else:
+				div = 2
+			for y in range(0, y_range):
 				for x in range(0, graph_size):
-					if y % 2 == 0:
-						if (x, y // 2) == self.start:
+					if y % div == 0:
+						if (x, y // div) == self.start:
 							self.outstring += 's'
-						elif (x, y // 2) == self.end:
+						elif (x, y // div) == self.end:
 							self.outstring += 'e'
 						else:
 							self.outstring += 'o'
-						if self.graph[y // 2][x] % 2 == 1:
-							self.outstring += '-'
+						if self.weighted:
+							if self.graph[y // div][x][0] != 0:
+								self.outstring += '-' + str(self.graph[y // div][x][0]) + '-'
+							else:
+								self.outstring += '   '
 						else:
-							self.outstring += ' '
+							if self.graph[y // div][x][0] != 0:
+								self.outstring += '-'
+							else:
+								self.outstring += ' '
 					else:
-						if (self.graph[y // 2][x] // 4) % 2 == 1:
-							self.outstring += '|'
+						if self.weighted and y % 2 != 0:
+							if self.graph[y // 4][x][1] != 0:
+								self.outstring += '|'
+							else:
+								self.outstring += ' '
+							self.outstring += '   '
+						elif self.weighted:
+							if self.graph[y // 4][x][1] != 0:
+								self.outstring += str(self.graph[y // 4][x][1])
+							else:
+								self.outstring += ' '
+							self.outstring += '   '
 						else:
+							if self.graph[y // 2][x][1] != 0:
+								self.outstring += '|'
+							else:
+								self.outstring += ' '
 							self.outstring += ' '
-						self.outstring += ' '
-				if y != (graph_size - 1) * 2:
+				if y != y_range - 1:
 					self.outstring += '\n'
+		elif max_weight < 10:
+			self.outstring = "Graph too large to represent"
 		else:
-			self.outstring = "Graph too large to respresent"
+			self.outstring = "max_weight is too large to represent the graph"
 
 	# Getter that checks if we are at the start state. Probably redundant
 	def isStart(self, state):
@@ -109,14 +154,14 @@ class Graph2D:
 		try:
 			#return actions in order
 			num = self.graph[state[1]][state[0]]
-			if num > 7:
-				actions.append((state, "UP"))
-			if (num // 4) % 2 == 1:
-				actions.append((state, "DOWN"))
-			if (num // 2) % 2 == 1:
-				actions.append((state, "LEFT"))
-			if num % 2 == 1:
-				actions.append((state, "RIGHT"))
+			if state[1] > 0 and self.graph[state[1] - 1][state[0]][1] != 0:
+				actions.append((state, "UP", self.graph[state[1]][state[0] - 1][1]))
+			if self.graph[state[1]][state[0]][1] != 0:
+				actions.append((state, "DOWN", self.graph[state[1]][state[0]][1]))
+			if state[0] > 0 and self.graph[state[1]][state[0] - 1][0] != 0:
+				actions.append((state, "LEFT", self.graph[state[1]][state[0]][0]))
+			if self.graph[state[1]][state[0]][0] != 0:
+				actions.append((state, "RIGHT", self.graph[state[1]][state[0]][0]))
 			return actions
 		except:
 			#malformed, return empty array
@@ -134,13 +179,13 @@ class Graph2D:
 				return None
 			num = self.graph[state[1]][state[0]]
 			#return new state
-			if act == "UP" and num > 7:
+			if act == "UP" and self.graph[state[1] - 1][state[0]][1] != 0:
 				return (state[0], state[1] - 1)
-			if act == "DOWN" and (num // 4) % 2 == 1:
+			if act == "DOWN" and self.graph[state[1]][state[0]][1] != 0:
 				return (state[0], state[1] + 1)
-			if act == "LEFT" and (num // 2) % 2 == 1:
+			if act == "LEFT" and self.graph[state[1]][state[0] - 1][0] != 0:
 				return (state[0] - 1, state[1])
-			if act == "RIGHT" and num % 2 == 1:
+			if act == "RIGHT" and self.graph[state[1]][state[0]][0] != 0:
 				return (state[0] + 1, state[1])
 			return None
 		except:
@@ -156,8 +201,8 @@ class Graph2D:
 """
 class Grapher(Graph2D):
 	# Constructor
-	def __init__(self, graph_size):
-		Graph2D.__init__(self, graph_size)
+	def __init__(self, graph_size, max_weight=1):
+		Graph2D.__init__(self, graph_size, max_weight)
 		self.root = tk.Tk()
 		self.height = min(50*graph_size, 700)
 		self.width = min(50*graph_size, 700)
@@ -182,6 +227,8 @@ class Grapher(Graph2D):
 		y_loc = (start[1] * self.offset) + (2.25 * self.node_radius)
 		x_loc2 = (end[0] * self.offset) + (2.25 * self.node_radius)
 		y_loc2 = (end[1] * self.offset) + (2.25 * self.node_radius)
+		text_x = min(x_loc, x_loc2) + abs((x_loc - x_loc2) * .5)
+		text_y = min(y_loc, y_loc2) + abs((y_loc - y_loc2) * .5)
 
 		# Draw the line
 		self.canvas.create_line(x_loc, y_loc, x_loc2,
@@ -200,6 +247,8 @@ class Grapher(Graph2D):
 		elif self.isEnd(end):
 			color = "red"
 		self.__plotNode(x_loc2, y_loc2, color) #plot
+		if self.weighted:
+			self.canvas.create_text(text_x, text_y, text="0", fill=line_color)
 
 	# Function that draws everything
 	def __draw(self):
@@ -222,20 +271,29 @@ class Grapher(Graph2D):
 						y_loc2 = (y * self.offset) + (2.25 * self.node_radius)
 					else:
 						continue
-					self.canvas.create_line(x_loc, y_loc, x_loc2, y_loc2, width=2, fill=color)
+					self.canvas.create_line(x_loc, y_loc, x_loc2, y_loc2, width=1, fill=color)
+					if self.weighted:
+						text_x = min(x_loc, x_loc2) + abs((x_loc - x_loc2) * .5)
+						text_y = min(y_loc, y_loc2) + abs((y_loc - y_loc2) * .5)
+						self.canvas.create_text(text_x, text_y, text=str(action[2]), fill="black")
 
 		# Draw the actual nodes
 		for x in range(0, len(self.graph)):
 			for y in range(0, len(self.graph)):
+				x_loc = (x * self.offset) + (2.25 * self.node_radius)
+				y_loc = (y * self.offset) + (2.25 * self.node_radius)
 				color = "grey"
 				if self.isStart((x, y)):
 					color = "blue"
 				if self.isEnd((x, y)):
 					color = "red"
-				self.__plotNode((x * self.offset) + (2.25 * self.node_radius),
-					(y * self.offset) + (2.25 * self.node_radius), color)
+				self.__plotNode(x_loc, y_loc, color)
+				if self.weighted:
+					self.canvas.create_text(x_loc, y_loc, text="")
 
-		self.canvas.update()
+		self.canvas.update() #push
+
+		# Animate algorithm
 		if self.order != None:
 			prev_action = None
 			for action in self.order:
@@ -250,6 +308,7 @@ class Grapher(Graph2D):
 				time.sleep(1)
 				self.canvas.update()
 
+		# Outline path
 		if self.path != None:
 			path_color = "red"
 			node_color = "blue"
