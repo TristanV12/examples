@@ -55,7 +55,7 @@ class Graph2D:
 				# Randomly assigns down, right connections with probability 3/4
 				if x != graph_size - 1:
 					if max_weight > 1:
-						weight = int(max_weight * random.random())
+						weight = int((max_weight - 1) * random.random()) + 1
 					else:
 						weight = 1
 					self.graph[y][x][0] = (weight * (random.random() < .75))
@@ -119,6 +119,7 @@ class Graph2D:
 			self.outstring = "Graph too large to represent"
 		else:
 			self.outstring = "max_weight is too large to represent the graph"
+		print(self.graph)
 
 	# Getter that checks if we are at the start state. Probably redundant
 	def isStart(self, state):
@@ -155,13 +156,13 @@ class Graph2D:
 			#return actions in order
 			num = self.graph[state[1]][state[0]]
 			if state[1] > 0 and self.graph[state[1] - 1][state[0]][1] != 0:
-				actions.append((state, "UP", self.graph[state[1]][state[0] - 1][1]))
+				actions.append([state, "UP", self.graph[state[1] - 1][state[0]][1]])
 			if self.graph[state[1]][state[0]][1] != 0:
-				actions.append((state, "DOWN", self.graph[state[1]][state[0]][1]))
+				actions.append([state, "DOWN", self.graph[state[1]][state[0]][1]])
 			if state[0] > 0 and self.graph[state[1]][state[0] - 1][0] != 0:
-				actions.append((state, "LEFT", self.graph[state[1]][state[0]][0]))
+				actions.append([state, "LEFT", self.graph[state[1]][state[0] - 1][0]])
 			if self.graph[state[1]][state[0]][0] != 0:
-				actions.append((state, "RIGHT", self.graph[state[1]][state[0]][0]))
+				actions.append([state, "RIGHT", self.graph[state[1]][state[0]][0]])
 			return actions
 		except:
 			#malformed, return empty array
@@ -176,8 +177,8 @@ class Graph2D:
 			act = action[1]
 			#make sure we're in the graph
 			if self.__invalidState(state):
+				print(state)
 				return None
-			num = self.graph[state[1]][state[0]]
 			#return new state
 			if act == "UP" and self.graph[state[1] - 1][state[0]][1] != 0:
 				return (state[0], state[1] - 1)
@@ -201,7 +202,7 @@ class Graph2D:
 """
 class Grapher(Graph2D):
 	# Constructor
-	def __init__(self, graph_size, max_weight=1):
+	def __init__(self, graph_size, max_weight=1, animate_speed=1, show_dists=False):
 		Graph2D.__init__(self, graph_size, max_weight)
 		self.root = tk.Tk()
 		self.height = min(50*graph_size, 700)
@@ -213,15 +214,42 @@ class Grapher(Graph2D):
 		self.order = None
 		self.path = None
 		self.offset = self.node_radius * 5
-	
+		self.animate_speed = animate_speed
+		self.show_dists = show_dists
+
+	# Helper function to find start/end of lines
+	def __locsLines(self, start, end):
+		x_loc = (start[0] * self.offset) + (2.25 * self.node_radius)
+		y_loc = (start[1] * self.offset) + (2.25 * self.node_radius)
+		x_loc2 = (end[0] * self.offset) + (2.25 * self.node_radius)
+		y_loc2 = (end[1] * self.offset) + (2.25 * self.node_radius)
+
+		if y_loc == y_loc2:
+			if x_loc > x_loc2:
+				x_loc = x_loc - self.node_radius
+				x_loc2 = x_loc2 + self.node_radius
+			else:
+				x_loc = x_loc + self.node_radius
+				x_loc2 = x_loc2 - self.node_radius
+
+		if x_loc == x_loc2:
+			if y_loc > y_loc2:
+				y_loc = y_loc - self.node_radius
+				y_loc2 = y_loc2 + self.node_radius
+			else:
+				y_loc = y_loc + self.node_radius
+				y_loc2 = y_loc2 - self.node_radius
+		return x_loc, y_loc, x_loc2, y_loc2
+
 	# Helper function that plots a circle of radius self.radius at the center (x, y)
-	def __plotNode(self, x, y, color="grey"):
+	def __plotNode(self, x, y, color="grey", over_text="", text_color="black"):
 		self.canvas.create_oval(x - self.node_radius, y - self.node_radius,
 			x + self.node_radius, y + self.node_radius, fill=color)
+		self.canvas.create_text(x, y, text=over_text, fill="black")
 
 	# Helper function for drawing a line with two nodes at the end
 	#	This is helpful for animating the path
-	def __drawSingle(self, start, end, line_color):
+	def __drawSingle(self, start, end, line_color, edge_weight=0, node_weights=0):
 		# locations of start and end nodes
 		x_loc = (start[0] * self.offset) + (2.25 * self.node_radius)
 		y_loc = (start[1] * self.offset) + (2.25 * self.node_radius)
@@ -234,11 +262,18 @@ class Grapher(Graph2D):
 		self.canvas.create_line(x_loc, y_loc, x_loc2,
 			y_loc2, width=2, fill=line_color)
 
-		# Color the first node, will never be end
+		# Label weight of the edge, decide whether or not to label nodes
+		over_text = ("", "")
+		if self.weighted:
+			self.canvas.create_text(text_x, text_y, text=str(edge_weight), fill=line_color)
+			over_text = (str(node_weights[0]), str(node_weights[1]))
+
+		# Color the first node, should never be end
 		color = "grey"
 		if self.isStart(start):
 			color = "blue"
-		self.__plotNode(x_loc, y_loc, color) #plot
+		self.__plotNode(x_loc, y_loc, color,
+						over_text=over_text[0], text_color=line_color) #plot
 
 		# Color the second node
 		color = "grey"
@@ -246,12 +281,14 @@ class Grapher(Graph2D):
 			color = "blue"
 		elif self.isEnd(end):
 			color = "red"
-		self.__plotNode(x_loc2, y_loc2, color) #plot
-		if self.weighted:
-			self.canvas.create_text(text_x, text_y, text="0", fill=line_color)
+		self.__plotNode(x_loc2, y_loc2, color,
+						over_text=over_text[1], text_color=line_color) #plot
 
 	# Function that draws everything
 	def __draw(self):
+		# For simplification later
+		infinity = 	u"\u221E"
+
 		# Iterate through each node to draw edges first (so there are not overlap issues)
 		for x in range(0, len(self.graph)):
 			for y in range(0, len(self.graph)):
@@ -275,7 +312,8 @@ class Grapher(Graph2D):
 					if self.weighted:
 						text_x = min(x_loc, x_loc2) + abs((x_loc - x_loc2) * .5)
 						text_y = min(y_loc, y_loc2) + abs((y_loc - y_loc2) * .5)
-						self.canvas.create_text(text_x, text_y, text=str(action[2]), fill="black")
+						self.canvas.create_text(text_x, text_y,
+							text=str(action[2]), fill="black")
 
 		# Draw the actual nodes
 		for x in range(0, len(self.graph)):
@@ -289,7 +327,7 @@ class Grapher(Graph2D):
 					color = "red"
 				self.__plotNode(x_loc, y_loc, color)
 				if self.weighted:
-					self.canvas.create_text(x_loc, y_loc, text="")
+					self.canvas.create_text(x_loc, y_loc, text=infinity)
 
 		self.canvas.update() #push
 
@@ -300,39 +338,60 @@ class Grapher(Graph2D):
 				if prev_action != None:
 					start = prev_action[0]
 					end = self.tryAction(prev_action)
-					self.__drawSingle(start, end, "grey")
+					try:
+						if len(prev_action[3]) == 2:
+							weights = prev_action[3]
+						else:
+							weights = 0
+					except:
+						weights = 0
+					self.__drawSingle(start, end, "grey", edge_weight=prev_action[2],
+						node_weights=weights)
 				prev_action = action
 				start = action[0]
 				end = self.tryAction(action)
-				self.__drawSingle(start, end, "red")
-				time.sleep(1)
+				try:
+					if len(prev_action[3]) == 2:
+						weights = prev_action[3]
+					else:
+						weights = (0, 0)
+				except:
+					weights = (0, 0)
+				self.__drawSingle(start, end, "red", edge_weight=prev_action[2],
+					node_weights=weights)
+				time.sleep(self.animate_speed)
 				self.canvas.update()
+			if prev_action != None:
+				start = prev_action[0]
+				end = self.tryAction(prev_action)
+				try:
+					if len(prev_action[3]) == 2:
+						weights = prev_action[3]
+					else:
+						weights = 0
+				except:
+					weights = 0
+				self.__drawSingle(start, end, "grey", edge_weight=prev_action[2],
+					node_weights=weights)
 
 		# Outline path
 		if self.path != None:
 			path_color = "red"
 			node_color = "blue"
-			x_loc = (self.path[0][0] * self.offset) + (2.25 * self.node_radius)
-			y_loc = (self.path[0][1] * self.offset) + (2.25 * self.node_radius)
-			x_loc2 = (self.path[1][0] * self.offset) + (2.25 * self.node_radius)
-			y_loc2 = (self.path[1][1] * self.offset) + (2.25 * self.node_radius)
+			x_loc, y_loc, x_loc2, y_loc2 = self.__locsLines(self.path[0], self.path[1])
 			self.canvas.create_line(x_loc, y_loc, x_loc2, y_loc2, width=2, fill=path_color)
-			self.__plotNode(x_loc, y_loc, node_color)
 			node_color = "grey"
 			for i in range(1, len(self.path) - 1):
 				first = self.path[i]
 				second = self.path[i + 1]
-				x_loc = (first[0] * self.offset) + (2.25 * self.node_radius)
-				y_loc = (first[1] * self.offset) + (2.25 * self.node_radius)
-				x_loc2 = (second[0] * self.offset) + (2.25 * self.node_radius)
-				y_loc2 = (second[1] * self.offset) + (2.25 * self.node_radius)
+				x_loc, y_loc, x_loc2, y_loc2 = self.__locsLines(first, second)
+
 				self.canvas.create_line(x_loc, y_loc, x_loc2, y_loc2, width=2, fill=path_color)
-				self.__plotNode(x_loc, y_loc, node_color)
 			node_color = "red"
 			x_loc = (self.path[-1][0] * self.offset) + (2.25 * self.node_radius)
 			y_loc = (self.path[-1][1] * self.offset) + (2.25 * self.node_radius)
 			self.__plotNode(x_loc, y_loc, node_color)
-			time.sleep(3)
+			time.sleep(self.animate_speed)
 			self.canvas.update()
 
 	# Add an oder of viewed actions

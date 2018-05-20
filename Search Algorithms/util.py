@@ -106,5 +106,5 @@ class Priority(Queue):
 		if len(self.Q) < 1:
 			return None
 		item = self.Q[0]
-		self.Q = self.Q[0:]
+		self.Q = self.Q[1:]
 		return item
