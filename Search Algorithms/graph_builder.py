@@ -134,7 +134,7 @@ class Graph2D:
 
 	# Helper function that checks if a given state is on the board
 	#	Returns true if the state is INvalid
-	def __invalidState(self, state):
+	def _invalidState(self, state):
 		try:
 			size = len(self.graph)
 			return state[0] >= size or state[1] >= size or state[0] < 0 or state[1] < 0
@@ -148,7 +148,7 @@ class Graph2D:
 	# Getter that returns following actions of a state
 	def nextActions(self, state):
 		actions = []
-		if self.__invalidState(state):
+		if self._invalidState(state):
 			return []
 		#make sure the request is valid
 		try:
@@ -175,7 +175,7 @@ class Graph2D:
 			state = action[0]
 			act = action[1]
 			#make sure we're in the graph
-			if self.__invalidState(state):
+			if self._invalidState(state):
 				return None
 			#return new state
 			if act == "UP" and self.graph[state[1] - 1][state[0]][1] != 0:
@@ -398,8 +398,11 @@ class Grapher(Graph2D):
 		self.order = order
 
 	# Add a path from start to end node (or between any nodes)
-	# TODO: add error checking
+	#	first check that all states are valid: return none if not
 	def addPath(self, path):
+		for state in path:
+			if self._invalidState(state):
+				return None
 		self.path = path
 
 	# Draw the graph
