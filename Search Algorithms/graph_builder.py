@@ -119,7 +119,6 @@ class Graph2D:
 			self.outstring = "Graph too large to represent"
 		else:
 			self.outstring = "max_weight is too large to represent the graph"
-		print(self.graph)
 
 	# Getter that checks if we are at the start state. Probably redundant
 	def isStart(self, state):
@@ -177,7 +176,6 @@ class Graph2D:
 			act = action[1]
 			#make sure we're in the graph
 			if self.__invalidState(state):
-				print(state)
 				return None
 			#return new state
 			if act == "UP" and self.graph[state[1] - 1][state[0]][1] != 0:

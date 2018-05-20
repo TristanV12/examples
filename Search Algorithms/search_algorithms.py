@@ -98,7 +98,6 @@ def djikstra(graph):
 		# Add starting nodes to the queue
 		nextActions = graph.nextActions(start)
 		for action in nextActions:
-			print("Action", action)
 			queue.add(item=action, priority=backtrace[start[0]][start[1]] + action[2])
 		found = False #if the end has not been found and this has not been changed,
 						#there is no path from the start to the end node.
@@ -110,8 +109,11 @@ def djikstra(graph):
 			start_state = action[1][0]
 			end_state = graph.tryAction(action[1])
 			act = action[1]
-			act.append((backtrace[start_state[0]][start_state[1]],
-				backtrace[start_state[0]][start_state[1]] + action[1][2]))
+			new_weight = backtrace[start_state[0]][start_state[1]] + action[1][2]
+			if backtrace[end_state[0]][end_state[1]] != -1:
+				new_weight = min(new_weight, backtrace[end_state[0]][end_state[1]])
+			act.append((backtrace[start_state[0]][start_state[1]], new_weight))
+				
 			tested_actions.append(act) #for visualization later
 
 			# If this is the goal, we can stop
@@ -145,7 +147,6 @@ def djikstra(graph):
 						min_back = backtrace[new_end[0]][new_end[1]]
 						min_path = new_end
 				path = [min_path] + path
-			print(path)
 			return path, tested_actions
 
 		# Otherwise, there is no path
@@ -157,34 +158,35 @@ def djikstra(graph):
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Run tests on BFS and DFS algorithms')
 
-	parser.add_argument('--speed',
+	parser.add_argument('--speed', metavar='speed', type=float, nargs=1, default=[1],
 	                    help='Number of seconds it each trial is shown (1 is default)')
 
-	parser.add_argument('--graph_size',
+	parser.add_argument('--graph_size', metavar='graph_size', type=int, nargs=1, default=[10],
 	                    help='Size of the graph: ' +
 	                    	 'graph_size x graph_size nodes (10 is default)')
 
+	parser.add_argument('--max_weight', metavar='max_weight', type=int, nargs=1, default=[1],
+	                    help='Maximum weight an edge can have in the graph. ' +
+	                    	 'Cannot be less than 1, must be an integer (1 is default)')
+
+	parser.add_argument('--alg', metavar='alg', type=str, nargs=1, default=["BFS"],
+	                    help='Algorithm to use. ' +
+	                    	 'Can be "BFS", "DFS", or "Djikstra" (BFS is default)')
+
 	args = parser.parse_args()
-	if 'speed' in args:
-		try:
-			speed = float(args.speed)
-		except:
-			ValueError("Error: speed must be an integer or a float")
-	else:
-		speed = 1
 
-	if 'graph_size' in args:
-		try:
-			graph_size = int(args.graph_size)
-		except:
-			ValueError("Error: graph_size must be an integer")
-	else:
-		graph_size = 10
+	# Initialize the graph
+	graph = Grapher(args.graph_size[0], args.max_weight[0], animate_speed=args.speed[0])
 
-	# Initialize and run
-	graph = Grapher(graph_size, 1, animate_speed=speed)
-	print(graph)
-	path, tested_actions = djikstra(graph)
+	if args.alg[0] == "BFS":
+		path, tested_actions = searchAlgorithm(graph)
+	elif args.alg[0] == "DFS":
+		path, tested_actions = searchAlgorithm(graph, "DFS")
+	elif args.alg[0] == "Djikstra":
+		path, tested_actions = djikstra(graph)
+	else:
+		raise ValueError("Error: alg must be one of 'BFS', 'DFS', or 'Djikstra' "
+			+ "(without quotes)")
 
 	# Feedback
 	if path == None:
