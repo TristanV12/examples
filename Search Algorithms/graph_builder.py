@@ -393,8 +393,12 @@ class Grapher(Graph2D):
 			self.canvas.update()
 
 	# Add an oder of viewed actions
-	# TODO: add error checking
+	#	The error checking could run faster, but it is safe
+	# TODO: update error checking
 	def addOrder(self, order):
+		for action in order:
+			if action[:3] not in self.nextActions(action[0]):
+				return None
 		self.order = order
 
 	# Add a path from start to end node (or between any nodes)
