@@ -384,12 +384,7 @@ class Grapher(Graph2D):
 				second = self.path[i + 1]
 				x_loc, y_loc, x_loc2, y_loc2 = self.__locsLines(first, second)
 
-				self.canvas.create_line(x_loc, y_loc, x_loc2, y_loc2, width=2, fill=path_color)
-			node_color = "red"
-			x_loc = (self.path[-1][0] * self.offset) + (2.25 * self.node_radius)
-			y_loc = (self.path[-1][1] * self.offset) + (2.25 * self.node_radius)
-			self.__plotNode(x_loc, y_loc, node_color)
-			time.sleep(self.animate_speed)
+				self.canvas.create_line(x_loc, y_loc, x_loc2, y_loc2, width=2, fill=path_color)			time.sleep(self.animate_speed)
 			self.canvas.update()
 
 	# Add an oder of viewed actions
