@@ -2,6 +2,7 @@
 #include<iostream> // for i/o
 #include <stdlib.h> // malloc and free
 
+// node is a helpful struct for creating the leaves in the binary tree
 struct node{
 	int value;
 	node* left = NULL;
@@ -9,12 +10,20 @@ struct node{
 	node* parent = NULL;
 };
 
+
+// binaryTree is the binary tree class
 class binaryTree{
+
+// Public variables and methods
 public:
+	// The constructor decides if red/black tree or not
+	//	TODO: add red/black functionality
 	binaryTree(bool is_rb=false){
 		rb = is_rb;
 	}
 
+	// add adds a new value to the tree.
+	//	returns true if successful
 	bool add(int newValue){
 		// Create new node
 		node* new_node = (node*)malloc(sizeof(node));
@@ -42,6 +51,7 @@ public:
 		return true;
 	}
 
+	// remove removes the node from the list
 	bool remove(int value){
 		// Corner case
 		if(root == NULL){ return false; }
@@ -51,14 +61,18 @@ public:
 		// Corner case where root is the value
 		if(root->value == value){ tmp_node = root; }
 		else{
-			node* tmp_node = locateNode(value);
+			tmp_node = locateNode(value);
 			if(tmp_node == NULL){ return false; }
 		}
 		--size;
 		node* real_del;
-		if(tmp_node->left == NULL){
+		if(tmp_node->left == NULL && tmp_node->right != NULL){
 			*tmp_node = *(tmp_node->right);
 			real_del = tmp_node->right;
+		}else if(tmp_node->left == NULL){
+			real_del = tmp_node;
+			if(tmp_node == (tmp_node->parent)->left){ (tmp_node->parent)->left = NULL; }
+			else{ (tmp_node->parent)->right = NULL; }
 		}else{
 			real_del = tmp_node->left;
 			while(real_del->right != NULL){
@@ -72,7 +86,8 @@ public:
 				(real_del->left)->parent = real_del->parent;
 			}
 		}
-		free(real_del);
+		// free(real_del);
+		return true;
 	}
 
 	bool contains(int value){
@@ -168,6 +183,8 @@ int main(int argc, char *argv[]){
 	b.add(5);
 	b.add(3);
 	b.add(4);
+	std::cout << b.toString();
+	b.remove(3);
 	std::cout << b.toString();
 
 	// for (int i = 0; i < 10; ++i){
