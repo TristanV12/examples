@@ -1,6 +1,6 @@
 // Includes
 #include<iostream> // for i/o
-#include <stdlib.h> // malloc and free
+#include<stdlib.h> // malloc and free
 
 // node is a helpful struct for creating the leaves in the binary tree
 struct node{
@@ -8,6 +8,13 @@ struct node{
 	node* left = NULL;
 	node* right = NULL;
 	node* parent = NULL;
+};
+
+// node is a helpful struct for creating the leaves in the binary tree
+struct linked_node{
+	int value;
+	node* next = NULL;
+	node* prev = NULL;
 };
 
 
@@ -18,9 +25,7 @@ class binaryTree{
 public:
 	// The constructor decides if red/black tree or not
 	//	TODO: add red/black functionality
-	binaryTree(bool is_rb=false){
-		rb = is_rb;
-	}
+	binaryTree(bool is_rb=false){ rb = is_rb; }
 
 	// add adds a new value to the tree.
 	//	returns true if successful
@@ -140,9 +145,7 @@ public:
 	}
 
 	// size returns the size of the tree
-	int size(){
-		return tree_size;
-	}
+	int size(){ return tree_size; }
 
 // Private variables and methods
 private:
@@ -201,6 +204,92 @@ private:
 			recurseString(output, root_node->right);
 		}
 	}
+};
+
+class linkedList
+{
+public:
+	// Constructor just sets size to 0
+	linkedList(){ size = 0; }
+
+	bool add(int value){
+		linked_node* new_node = (linked_node*)malloc(sizeof(linked_node));
+		new_node->value = value;
+		if(root == NULL){
+			root = new_node;
+			root->prev = NULL;
+			root->next = NULL;
+			end = new_node;
+			++length;
+			return true;
+		}
+		if(root->value > value){
+			root->prev = new_node;
+			new_node->prev = NULL;
+			new_node->next = root;
+			++length;
+			return true;
+		}
+
+		linked_node* curr_node = root;
+		while(true){
+			if(curr_node->value == value){ return false; }
+			if(curr_node->next == NULL || (curr_node->next)->value > value){
+				curr_node->next = new_node;
+				new_node->prev = curr_node;
+				new_node->next = curr_node->next;
+				if(curr_node->next == NULL){ end = new_node; }
+				++length;
+				return true;
+			}
+			curr_node = curr_node->next;
+		}
+	}
+
+	bool remove(int value){
+		// Corner case
+		if(root == NULL){ return false; }
+		linked_node* real_del;
+		if(root->value == value){
+			real_del = root;
+			root = root->next;
+			root->prev = NULL;
+			free(real_del);
+			--length;
+			return true;
+		}
+
+		linked_node* curr_node = root;
+		while(true){
+			if(curr_node == NULL || curr_node-value > value){ return false; }
+			if(curr_node->value == value){
+				(curr_node->prev)->next = curr_node->next;
+				if(curr_node->next != NULL){
+					(curr_node->next)->prev = curr_node->prev;
+				}
+				free(curr_node);
+				--length;
+				return true;
+			}
+		}
+	}
+
+	int maxValue(){
+		if(root == NULL){ return 0; }
+		return end->value;
+	}
+
+	int minValue(){
+		if(root == NULL){ return 0; }
+		return root->value;
+	}
+
+	int size(){ return length; }
+
+private:
+	linked_node* root = NULL;
+	linked_node* end = NULL;
+	int length;
 };
 
 void test(){
