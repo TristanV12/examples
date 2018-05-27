@@ -13,8 +13,8 @@ struct node{
 // node is a helpful struct for creating the leaves in the binary tree
 struct linked_node{
 	int value;
-	node* next = NULL;
-	node* prev = NULL;
+	linked_node* next = NULL;
+	linked_node* prev = NULL;
 };
 
 
@@ -210,7 +210,7 @@ class linkedList
 {
 public:
 	// Constructor just sets size to 0
-	linkedList(){ size = 0; }
+	linkedList(bool hi=false){ length = 0; }
 
 	bool add(int value){
 		linked_node* new_node = (linked_node*)malloc(sizeof(linked_node));
@@ -227,6 +227,7 @@ public:
 			root->prev = new_node;
 			new_node->prev = NULL;
 			new_node->next = root;
+			root = new_node;
 			++length;
 			return true;
 		}
@@ -235,10 +236,10 @@ public:
 		while(true){
 			if(curr_node->value == value){ return false; }
 			if(curr_node->next == NULL || (curr_node->next)->value > value){
+				new_node->next = curr_node->next;
 				curr_node->next = new_node;
 				new_node->prev = curr_node;
-				new_node->next = curr_node->next;
-				if(curr_node->next == NULL){ end = new_node; }
+				if(new_node->next == NULL){ end = new_node; }
 				++length;
 				return true;
 			}
@@ -261,7 +262,7 @@ public:
 
 		linked_node* curr_node = root;
 		while(true){
-			if(curr_node == NULL || curr_node-value > value){ return false; }
+			if(curr_node == NULL || curr_node->value > value){ return false; }
 			if(curr_node->value == value){
 				(curr_node->prev)->next = curr_node->next;
 				if(curr_node->next != NULL){
@@ -286,13 +287,25 @@ public:
 
 	int size(){ return length; }
 
+	std::string toString(){
+		linked_node* curr_node = root;
+		std::string output = "";
+		while(curr_node != NULL){
+			output += std::to_string(curr_node->value);
+			if(curr_node->next != NULL){ output += ", "; }
+			curr_node = curr_node->next;
+		}
+		return output;
+	}
+
 private:
 	linked_node* root = NULL;
 	linked_node* end = NULL;
 	int length;
 };
 
-void test(){
+void testBinaryTree(){
+	std::cout << "Starting binaryTree tests" << std::endl;
 	binaryTree b = new binaryTree();
 	std::string str = "";
 	for(int i = 0; i < 30; ++i){
@@ -322,12 +335,46 @@ void test(){
 
 	std::cout << "size 100 digits test: ";
 	if(b.size() != 100){ std::cout << "FAILED" << std::endl; }
+	else{ std::cout << "SUCCESS" << std::endl << std::endl; }
+}
+
+void testList(){
+	std::cout << "Starting linkedList tests" << std::endl;
+	linkedList b = new linkedList();
+	std::string str = "";
+	for(int i = 0; i < 30; ++i){
+		b.add(i);
+	}
+	for(int i = 50; i < 100; ++i){
+		b.add(i);
+	}
+	for(int i = 20; i < 60; ++i){
+		b.add(i);
+	}
+	for(int i = 0; i < 100; ++i){
+		if(i != 0){ str += ", "; }
+		str += std::to_string(i);
+	}
+	std::cout << "toString 100 digits test: ";
+	if(b.toString().compare(str) != 0){ std::cout << "FAILED" << std::endl; }
 	else{ std::cout << "SUCCESS" << std::endl; }
 
+	std::cout << "maxValue 100 digits test: ";
+	if(b.maxValue() != 99){ std::cout << "FAILED" << std::endl; }
+	else{ std::cout << "SUCCESS" << std::endl; }
+
+	std::cout << "minValue 100 digits test: ";
+	if(b.minValue() != 0){ std::cout << "FAILED" << std::endl; }
+	else{ std::cout << "SUCCESS" << std::endl; }
+
+	std::cout << "size 100 digits test: ";
+	if(b.size() != 100){ std::cout << "FAILED" << std::endl; }
+	else{ std::cout << "SUCCESS" << std::endl; }
 }
 
 int main(int argc, char *argv[]){
-	test();
+	testBinaryTree();
+	testList();
     
     return 0;
 }
