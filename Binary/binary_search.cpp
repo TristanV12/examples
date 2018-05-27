@@ -272,6 +272,7 @@ public:
 				--length;
 				return true;
 			}
+			curr_node = curr_node->next;
 		}
 	}
 
