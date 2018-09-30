@@ -1,7 +1,7 @@
-answer(X) :-
-  foreach(member(Y, [1,2]), write(Y)),
-  number(X, A),
-  writeln(A).
+answer(R) :- findall(Num, between(1, 1000, Num), L), summer(L,R).
+
+summer([], 0).
+summer([H | T],R) :- summer(T,R1), numb(H,R2), R is R1 + R2.
 
 ones(X,A) :-
   (X =:= 1 ; X =:= 2 ; X =:= 6),
@@ -40,7 +40,7 @@ tens(X,A) :-
   X > 9,
   teens(X,A).
 tens(X,A) :-
-  ((X > 19, X < 40) ; (X > 89, X < 100)),
+  ((X > 19, X < 40) ; (X > 79, X < 100)),
   C is X mod 10,
   ones(C,B),
   A is B + 6.
@@ -73,12 +73,12 @@ hundreds(X,A) :-
   tens(TP, C),
   A is D + C.
 
-number(X,A) :-
+numb(X,A) :-
   X =:= 1000,
   A is 11.
-number(X,A) :-
+numb(X,A) :-
   X > 99,
   hundreds(X,A).
-number(X,A) :-
+numb(X,A) :-
   X < 100,
   tens(X,A). 
